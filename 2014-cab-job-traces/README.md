@@ -34,6 +34,23 @@ JobID,User,Partition,NNodes,NCPUS,Timelimit,State,Submit,Start,Elapsed,End,ExitC
 9,1,pbatch,4,64,12:00:00,COMPLETED,2014-08-01T13:55:24,2014-08-01T13:55:24,01:15:06,2014-08-01T15:10:30,0:0
 ```
 
+# Citation Information
+
+If you use these job traces in a publication, please cite them using the following information:
+
+Flux Framwork Team (2020). 2014 Cab Supercomputer Job Scheduling Traces. Lawrence Livermore National Laboratory. https://doi.org/10.5281/zenodo.3908771
+
+```bibtex
+@misc{cab-traces,
+    author = {Flux Framework Team},
+    title = {2014 Cab Supercomputer Job Scheduling Traces},
+    doi = {10.5281/zenodo.3908771},
+    howpublished = {\url{https://doi.org/10.5281/zenodo.3908771}},
+    year = 2020,
+    organization = {Lawrence Livermore National Laboratory},
+}
+```
+
 # Disclaimer
 
 Released under LLNL-MI-811683. Prepared by LLNL under Contract DE-AC52-07NA27344.
