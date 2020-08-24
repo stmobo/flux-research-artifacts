@@ -1,0 +1,106 @@
+#!/bin/bash
+#SBATCH --nodes=${num_nodes}
+#SBATCH --output="${slurm_output_file}"
+#SBATCH --time=${timelimit}
+#SBATCH --job-name=${job_name}
+
+cd ${test_dir}
+
+${prologue}
+
+module load spack-views/hierarchical-sched
+
+JOB_NAME="${job_name}"
+EXTRA_FLAGS=""
+FLUX_CMD="flux"
+LOG_LEVEL=6
+
+# Use -gt 1 to consume two arguments per pass in the loop (e.g. each
+# argument has a corresponding value to go with it).
+# Use -gt 0 to consume one or more arguments per pass in the loop (e.g.
+# some arguments don't have a corresponding value to go with it such
+# as in the --default example).
+# note: if this is set to -gt 0 the /etc/hosts part is not recognized ( may be a bug )
+while [[ $$# -gt 0 ]]
+do
+    key="$$1"
+
+    case $$key in
+        -d|--debug)
+            LOG_LEVEL=7
+            EXTRA_FLAGS="--debug"$${EXTRA_FLAGS:+" $$EXTRA_FLAGS"}
+            ;;
+        -v|--verbose)
+            EXTRA_FLAGS="--verbose"$${EXTRA_FLAGS:+" $$EXTRA_FLAGS"}
+            ;;
+        -h|--help)
+            echo ' Options:
+    -h|--help
+    -d|--debug
+    -v|--verbose'
+            exit 0
+            ;;
+        *)
+            # unknown option
+            ;;
+    esac
+    shift # past argument or value
+done
+
+RESULTS_DIR=${results_dir}
+LOG_DIR=${log_dir}
+PERSIST_DIR=${persist_dir}
+mkdir -p $${RESULTS_DIR}
+mkdir -p $${LOG_DIR}
+mkdir -p $${PERSIST_DIR}
+
+if [[ -n $$LOG_DIR ]]; then
+    rm -rf $${LOG_DIR}/*
+fi
+
+TIME_OUTFILE=$${RESULTS_DIR}/time.output
+export FLUX_CONF_DIR=${test_dir}/conf.d
+
+ulimit -c unlimited # core dumps (debuggin)
+ulimit -f unlimited # file size (content store db)
+ulimit -n 128000 # file descriptors (large workloads)
+ulimit -u 7168 # processes (large workloads)
+
+if [[ $${SLURM_PROCID} -eq 0 ]]; then
+    FLUX_CMD="time -o $${TIME_OUTFILE} $${FLUX_CMD}"
+    echo flux         = "$$(which flux)"
+    echo python       = "$$(which python)"
+    echo PYTHONHOME   = "$${PYTHONHOME}"
+    echo PYTHONPATH   = "$${PYTHONPATH}"
+    echo FLUX_PYTHON_PATH   = "$${FLUX_PYTHON_PATH}"
+    echo FLUX_MODULE_PATH   = "$${FLUX_MODULE_PATH}"
+    echo FLUX_RC_EXTRA   = "$${FLUX_RC_EXTRA}"
+    echo FLUX_CONF_DIR   = "$${FLUX_CONF_DIR}"
+    echo FLUX CMD     = "$${FLUX_CMD}"
+    echo JOB NAME     = "$${JOB_NAME}"
+    echo LOG LEVEL    = "$${LOG_LEVEL}"
+    echo EXTRA FLAGS  = "$${EXTRA_FLAGS}"
+fi
+
+srun --mpi=none --mpibind=off -N ${num_nodes} \
+            $${FLUX_CMD} start \
+            -o,-Spersist-filesystem=$${PERSIST_DIR},-Slog-forward-level=$${LOG_LEVEL},-Slog-stderr-level=$${LOG_LEVEL} \
+            flux tree \
+            ${topology_arg} ${leaf_arg} \
+            --nnodes=${num_nodes} \
+            --ncores-per-node=${cores_per_node} \
+            --njobs=${num_jobs} \
+            --perf-out=$${RESULTS_DIR}/perf.out \
+            --flux-logs=$${LOG_DIR} -- \
+            ${command}
+
+
+if [[ $${SLURM_PROCID} -eq 0 ]]; then
+    echo "Completed: $${FLUX_CM}"
+fi
+
+pkill -u $$USER flux-broker
+
+rm -rf $${PERSIST_DIR}
+#mv ./*.log ./logs/
+7z a -sdel logs.7z ./logs
