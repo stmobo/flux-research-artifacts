@@ -1,0 +1,17 @@
+[bootstrap]
+
+#
+# Configuration for the qmanager module
+#
+
+[qmanager]
+
+policy = "fcfs"                    # queueing policy type
+
+    [qmanager.queue-params]        # general queue parameters
+    max-queue-depth = 100000       # max queue depth (applied to all policies)
+    queue-depth = ${queue_depth}   # queue-depth (applied to all policies)
+
+    [qmanager.policy-params]       # queue policy parameters
+    max-reservation-depth = 100000 # max depth for "conservative" and "hybrid"
+    reservation-depth = 0          # reservation depth for HYBRID
