@@ -37,6 +37,6 @@ do
 done
 
 for app in sleep0 sleep5 stream firestarter; do
-    ./variable-num-jobs.py -u $app ${EXTRA_FLAGS}
-    ./build-model.py -u $app ${EXTRA_FLAGS}
+    ./testing/test-generation/variable-num-jobs.py -u $app ${EXTRA_FLAGS}
+    ./testing/test-generation/build-model.py -u $app ${EXTRA_FLAGS}
 done
