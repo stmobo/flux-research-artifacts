@@ -25,6 +25,12 @@ def get_parser():
         help="unique identifier of this test; appears in test dir names",
         default="sleep0",
     )
+    parser.add_argument(
+        "-o",
+        "--out_path",
+        help="base path for output",
+        default="/p/lquake/herbein1",
+    )
     parser.add_argument("-v", "--verbose", action="store_true")
     parser.add_argument("--repetitions", type=int)
     parser.add_argument("--small-scale", action="store_true")
@@ -56,28 +62,23 @@ def get_command(unique_id):
 
 
 def get_output_dir(test_name, args):
-    hostname = socket.gethostname()
-    if hostname.startswith("opal"):
-        lustre_prefix = "/p/lquake/"
-    else:
-        raise NotImplementedError()
-
-    output_dir = os.path.abspath(
-        os.path.join(lustre_prefix, "herbein1/{}-{}".format(args.unique_id, test_name))
+    output_dir = os.path.join(
+        os.path.abspath(args.out_path),
+        "{}-{}".format(args.unique_id, test_name)
     )
+
     if args.small_scale:
         output_dir += "-small-scale"
     elif args.medium_scale:
         output_dir += "-medium-scale"
+        
     return output_dir
 
 
 def get_template_dir(job_gen_type):
-    template_dir_prefix = os.path.expanduser(
-        "~/Repositories/flux-framework/hierarchical-sched-research/testing/test-template-dirs"
+    return os.path.join(
+        os.getcwd(), "testing", "test-template-dirs", job_gen_type
     )
-    template_dir = os.path.join(template_dir_prefix, job_gen_type)
-    return template_dir
 
 
 def get_default_kwargs(args):
