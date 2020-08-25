@@ -33,20 +33,23 @@ def get_parser():
 
 
 def get_command(unique_id):
+    # NOTE: assumes cwd is 2020-IJHPCA folder
+    exe_dir = os.path.join(os.getcwd(), "test-executables")
+
     if unique_id == "sleep0":
         return "flux mini submit -n1 -c1 sleep 0"
     elif unique_id == "sleep5":
         return "flux mini submit -n1 -c1 sleep 5"
     elif unique_id == "stream":
         return (
-            "flux mini submit -n1 -c1"
-            " /usr/WS2/herbein1/packages/toss3/toss3/stream/stream_c_70times.exe"
+            "flux mini submit -n1 -c1 " +
+            os.path.join(exe_dir, "stream", "stream_70") +
             " | sed -n '23,27p'"
         )
     elif unique_id == "firestarter":
         return (
-            "flux mini submit -n1 -c1"
-            " /usr/WS2/herbein1/packages/toss3/toss3/firestarter/1.7.4/FIRESTARTER"
+            "flux mini submit -n1 -c1 " +
+            os.path.join(exe_dir, "FIRESTARTER") +
             " -t 5 -q"
         )
     raise NotImplementedError()
