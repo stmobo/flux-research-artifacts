@@ -10,4 +10,4 @@ spack:
   - stream
   - hpl
   concretization: together
-  view: /home/herbein1/spack-views/hierarchical-sched
+  view: /home/smobo/spack-views/hierarchical-scheduling
