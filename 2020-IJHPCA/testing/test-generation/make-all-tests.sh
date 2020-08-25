@@ -18,6 +18,10 @@ do
             EXTRA_FLAGS="--repetitions=$2"${EXTRA_FLAGS:+" $EXTRA_FLAGS"}
             shift
             ;;
+        -o|--out-path)
+            EXTRA_FLAGS="--out_path=$2"${EXTRA_FLAGS:+" $EXTRA_FLAGS"}
+            shift
+            ;;
         -h|--help)
             echo ' Options:
     -h|--help
