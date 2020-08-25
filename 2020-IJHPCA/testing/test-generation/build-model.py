@@ -96,7 +96,9 @@ def main():
     kwargs["command"] = common.get_command(args.unique_id)
     output_dir = common.get_output_dir("model", args)
     assert os.path.isdir(template_dir), template_dir
-    assert os.path.isdir(output_dir), output_dir
+
+    if not os.path.isdir(output_dir):
+        os.mkdir(output_dir)
 
     num_nodes = 32
     topologies = [[1], [1, num_nodes], [1, num_nodes, num_cores_per_node]]

@@ -45,7 +45,9 @@ def main():
     kwargs["command"] = common.get_command(args.unique_id)
     output_dir = common.get_output_dir("multi-level", args)
     assert os.path.isdir(template_dir), template_dir
-    assert os.path.isdir(output_dir), output_dir
+    
+    if not os.path.isdir(output_dir):
+        os.mkdir(output_dir)
 
     if args.small_scale:
         num_nodes = 2
