@@ -1,8 +1,8 @@
 #!/bin/bash
-#SBATCH --nodes=${num_nodes}
-#SBATCH --output="${slurm_output_file}"
-#SBATCH --time=${timelimit}
-#SBATCH --job-name=${job_name}
+#BSUB -n ${num_nodes}
+#BSUB -o "${slurm_output_file}"
+#BSUB -W ${timelimit}
+#BSUB -J ${job_name}
 
 cd ${test_dir}
 
@@ -66,7 +66,7 @@ ulimit -f unlimited # file size (content store db)
 ulimit -n 128000 # file descriptors (large workloads)
 ulimit -u 7168 # processes (large workloads)
 
-if [[ $${SLURM_PROCID} -eq 0 ]]; then
+#if [[ $${SLURM_PROCID} -eq 0 ]]; then
     FLUX_CMD="time -o $${TIME_OUTFILE} $${FLUX_CMD}"
     echo flux         = "$$(which flux)"
     echo python       = "$$(which python)"
@@ -80,24 +80,24 @@ if [[ $${SLURM_PROCID} -eq 0 ]]; then
     echo JOB NAME     = "$${JOB_NAME}"
     echo LOG LEVEL    = "$${LOG_LEVEL}"
     echo EXTRA FLAGS  = "$${EXTRA_FLAGS}"
-fi
+#fi
 
-srun --mpi=none --mpibind=off -N ${num_nodes} \
-            $${FLUX_CMD} start \
-            -o,-Spersist-filesystem=$${PERSIST_DIR},-Slog-forward-level=$${LOG_LEVEL},-Slog-stderr-level=$${LOG_LEVEL} \
-            flux tree \
-            ${topology_arg} ${leaf_arg} \
-            --nnodes=${num_nodes} \
-            --ncores-per-node=${cores_per_node} \
-            --njobs=${num_jobs} \
-            --perf-out=$${RESULTS_DIR}/perf.out \
-            --flux-logs=$${LOG_DIR} -- \
-            ${command}
+mpiexec -np ${num_nodes} \
+    $${FLUX_CMD} start \
+    -o,-Spersist-filesystem=$${PERSIST_DIR},-Slog-forward-level=$${LOG_LEVEL},-Slog-stderr-level=$${LOG_LEVEL} \
+    flux tree \
+    ${topology_arg} ${leaf_arg} \
+    --nnodes=${num_nodes} \
+    --ncores-per-node=${cores_per_node} \
+    --njobs=${num_jobs} \
+    --perf-out=$${RESULTS_DIR}/perf.out \
+    --flux-logs=$${LOG_DIR} -- \
+    ${command}
 
 
-if [[ $${SLURM_PROCID} -eq 0 ]]; then
-    echo "Completed: $${FLUX_CM}"
-fi
+#if [[ $${SLURM_PROCID} -eq 0 ]]; then
+echo "Completed: $${FLUX_CM}"
+#fi
 
 pkill -u $$USER flux-broker
 

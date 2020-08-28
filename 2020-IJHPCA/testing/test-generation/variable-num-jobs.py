@@ -24,7 +24,7 @@ def variable_num_jobs(
             )
             hours = int(est_minutes // 60)
             minutes = int(est_minutes % 60)
-            kwargs["timelimit"] = "{:02d}:{:02d}:00".format(hours, minutes)
+            kwargs["timelimit"] = "{:02d}:{:02d}".format(hours, minutes)
             make_test(
                 topology,
                 num_jobs,
