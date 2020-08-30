@@ -9,11 +9,11 @@ cd ${test_dir}
 
 ${prologue}
 
-module load spack-views/hierarchical-sched
+module load spack-views/hierarchical-scheduling
 
 JOB_NAME="${job_name}"
 EXTRA_FLAGS=""
-FLUX_CMD="flux"
+FLUX_CMD="$$(which flux)"
 LOG_LEVEL=6
 
 # Use -gt 1 to consume two arguments per pass in the loop (e.g. each
@@ -68,7 +68,7 @@ ulimit -n 128000 # file descriptors (large workloads)
 ulimit -u 7168 # processes (large workloads)
 
 #if [[ $${SLURM_PROCID} -eq 0 ]]; then
-    FLUX_CMD="time -o $${TIME_OUTFILE} $${FLUX_CMD}"
+    #FLUX_CMD="/usr/bin/time -o $${TIME_OUTFILE} $${FLUX_CMD}"
     echo flux         = "$$(which flux)"
     echo python       = "$$(which python)"
     echo PYTHONHOME   = "$${PYTHONHOME}"
@@ -95,6 +95,7 @@ mpiexec -np ${num_cores} \
     --flux-logs=$${LOG_DIR} -- \
     ${command}
 
+touch $${TIME_OUTFILE}
 
 #if [[ $${SLURM_PROCID} -eq 0 ]]; then
 echo "Completed: $${FLUX_CM}"
