@@ -79,8 +79,8 @@ def submit_test(test, dependencies=None):
     dependencies = [x for x in dependencies if x >= 0]
 
     print("{}".format(test.path))
-    with open(osp.join(test.path, RUN_SCRIPT_NAME), "rb") as f:
-        run_script_bytes = f.read()
+    with open(osp.join(test.path, RUN_SCRIPT_NAME), "r", encoding="utf-8") as f:
+        script_data = f.read()
 
     command = ["bsub"]
 
@@ -113,7 +113,7 @@ def submit_test(test, dependencies=None):
     else:
         test.lock()
         try:
-            curr_jobid = run_bsub(command, test.path, run_script_bytes)
+            curr_jobid = run_bsub(command, test.path, script_data)
         except CalledProcessError as e:
             print("\tSkipping, encountered an exception while submitting: {}".format(e))
             return -1
