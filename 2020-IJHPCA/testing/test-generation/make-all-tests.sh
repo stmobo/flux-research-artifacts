@@ -36,7 +36,8 @@ do
     shift # past argument or value
 done
 
-for app in sleep0 sleep5 stream firestarter; do
+# NOTE: limiting tests for now to sleep0 and sleep5
+for app in sleep0 sleep5; do
     ./testing/test-generation/variable-num-jobs.py -u $app ${EXTRA_FLAGS}
     ./testing/test-generation/build-model.py -u $app ${EXTRA_FLAGS}
 done
