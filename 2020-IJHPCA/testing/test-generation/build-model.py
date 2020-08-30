@@ -100,8 +100,8 @@ def main():
     if not os.path.isdir(output_dir):
         os.mkdir(output_dir)
 
-    num_nodes = 32
-    topologies = [[1], [1, num_nodes], [1, num_nodes, num_cores_per_node]]
+    num_nodes = 2
+    topologies = [[1], [1, 32], [1, num_nodes], [1, num_nodes, num_cores_per_node]]
 
     repetitions = range(1) if args.small_scale or args.medium_scale else range(3)
     if args.repetitions:
@@ -123,6 +123,6 @@ if __name__ == "__main__":
     parser = common.get_parser()
     args = parser.parse_args()
 
-    num_cores_per_node = 36
+    num_cores_per_node = 32
 
     main()
