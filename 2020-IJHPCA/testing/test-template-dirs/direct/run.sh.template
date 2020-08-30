@@ -14,7 +14,7 @@ module load spack-views/hierarchical-scheduling
 JOB_NAME="${job_name}"
 EXTRA_FLAGS=""
 FLUX_CMD="$$(which flux)"
-#LOG_LEVEL=6
+LOG_LEVEL=6
 
 # Use -gt 1 to consume two arguments per pass in the loop (e.g. each
 # argument has a corresponding value to go with it).
@@ -83,7 +83,7 @@ ulimit -u 7168 # processes (large workloads)
     echo EXTRA FLAGS  = "$${EXTRA_FLAGS}"
 #fi
 
-mpiexec -np ${num_cores} \
+lsgrun -p -m "$${LSB_HOSTS}" mpiexec -np ${cores_per_node} \
     $${FLUX_CMD} start \
     -o,-Spersist-filesystem=$${PERSIST_DIR},-Slog-forward-level=$${LOG_LEVEL},-Slog-stderr-level=$${LOG_LEVEL} \
     flux tree \
