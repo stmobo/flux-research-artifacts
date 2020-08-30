@@ -140,6 +140,7 @@ def make_test(
         "num_jobs": num_jobs,
         "num_nodes": num_nodes,
         "cores_per_node": cores_per_node,
+        "num_cores": num_cores,
         "repetition": repetition,
         "job_gen_type": job_gen_type,
         "timelimit": timelimit,

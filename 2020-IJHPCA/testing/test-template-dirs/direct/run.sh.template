@@ -1,5 +1,6 @@
 #!/bin/bash
-#BSUB -n ${num_nodes}
+#BSUB -n ${num_cores}
+#BSUB -R "span[ptile=${cores_per_node}]"
 #BSUB -o "${output_file}"
 #BSUB -W ${timelimit}
 #BSUB -J ${job_name}
@@ -82,7 +83,7 @@ ulimit -u 7168 # processes (large workloads)
     echo EXTRA FLAGS  = "$${EXTRA_FLAGS}"
 #fi
 
-mpiexec -np ${num_nodes} \
+mpiexec -np ${num_cores} \
     $${FLUX_CMD} start \
     -o,-Spersist-filesystem=$${PERSIST_DIR},-Slog-forward-level=$${LOG_LEVEL},-Slog-stderr-level=$${LOG_LEVEL} \
     flux tree \
