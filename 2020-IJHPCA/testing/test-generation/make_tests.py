@@ -148,7 +148,7 @@ def make_test(
         "runtime": runtime,
         "direct": direct,
         # 'tasklist' is included in kwargs
-        "slurm_output_file": os.path.join(test_dir, "slurm.out"),
+        "output_file": os.path.join(test_dir, "stdout.log"),
         "log_dir": log_dir,
         "results_dir": results_dir,
         "persist_dir": persist_dir,

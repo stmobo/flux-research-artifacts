@@ -1,6 +1,6 @@
 #!/bin/bash
 #BSUB -n ${num_nodes}
-#BSUB -o "${slurm_output_file}"
+#BSUB -o "${output_file}"
 #BSUB -W ${timelimit}
 #BSUB -J ${job_name}
 
