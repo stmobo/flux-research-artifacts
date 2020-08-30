@@ -8,6 +8,7 @@ from pathlib import Path
 import subprocess
 from subprocess import CalledProcessError
 from datetime import timedelta
+import os.path as osp
 
 from modules.time_conversion import walltime_str_to_timedelta
 
@@ -47,10 +48,10 @@ class Test(object):
         return not self.locked
 
 
-sbatch_re = re.compile(r"Submitted batch job ([0-9]+)")
+cmd_out_re = re.compile(r"Job \<([0-9]+)\> is submitted")
 
 
-def run_sbatch(command, cwd):
+def run_bsub(command, cwd, stdin):
     """
     If check is true, and the process exits with a non-zero exit code,
     a CalledProcessError exception will be raised. Attributes of that
@@ -62,12 +63,13 @@ def run_sbatch(command, cwd):
         cwd=cwd,
         check=True,
         encoding="ascii",
+        input=stdin,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )
-    match = sbatch_re.match(completed_proc.stdout)
+    match = cmd_out_re.match(completed_proc.stdout)
     if match is None:
-        raise RuntimeError("Unexpected sbatch stdout: {}".format(completed_proc.stdout))
+        raise RuntimeError("Unexpected bsub stdout: {}".format(completed_proc.stdout))
     return int(match.group(1))
 
 
@@ -77,22 +79,25 @@ def submit_test(test, dependencies=None):
     dependencies = [x for x in dependencies if x >= 0]
 
     print("{}".format(test.path))
+    with open(osp.join(test.path, RUN_SCRIPT_NAME), "rb") as f:
+        run_script_bytes = f.read()
+
+    command = ["bsub"]
+
+    if args.partition is not None:
+        command.append("-q")
+        command.append(args.partition)
+
     if len(dependencies) == 0:
         dependency_str = "N/A"
-        command = ["sbatch", "-p", args.partition, RUN_SCRIPT_NAME]
     else:
-        dependency_str = ":".join([str(x) for x in dependencies])
-        command = [
-            "sbatch",
-            "-p",
-            args.partition,
-            "-d",
-            "afterany:{}".format(dependency_str),
-            RUN_SCRIPT_NAME,
-        ]
+        dependency_str = "&&".join(["ended("+str(x)+")" for x in dependencies])
+        command.append("-w")
+        command.append(dependency_str)
 
     if args.debug_job:
-        command.append("--debug")
+        command.append("-env")
+        command.append("LOG_LEVEL=7")
 
     if args.dry_run:
         print(
@@ -108,7 +113,7 @@ def submit_test(test, dependencies=None):
     else:
         test.lock()
         try:
-            curr_jobid = run_sbatch(command, test.path)
+            curr_jobid = run_bsub(command, test.path, run_script_bytes)
         except CalledProcessError as e:
             print("\tSkipping, encountered an exception while submitting: {}".format(e))
             return -1
@@ -190,7 +195,7 @@ if __name__ == "__main__":
         help="comma-separated list of jobids that these jobs should only run after",
     )
     parser.add_argument(
-        "-p", "--partition", choices=["pbatch", "pdebug"], default="pbatch"
+        "-p", "--partition"
     )
     args = parser.parse_args()
 
