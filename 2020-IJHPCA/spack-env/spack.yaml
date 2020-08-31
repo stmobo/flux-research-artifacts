@@ -9,5 +9,6 @@ spack:
   - flux-sched@master
   - stream
   - hpl
+  - p7zip
   concretization: together
   view: /home/smobo/spack-views/hierarchical-scheduling
