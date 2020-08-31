@@ -83,8 +83,17 @@ ulimit -u 7168 # processes (large workloads)
     echo EXTRA FLAGS  = "$${EXTRA_FLAGS}"
 #fi
 
-export MPI_ROOT=/opt/ibm/spectrum_mpi
-$$MPI_ROOT/bin/mpiexec --display-allocation -np ${num_cores} \
+if [[ -a hostfile ]]; then
+    rm hostfile
+fi
+
+HOSTS=($$LSB_MCPU_HOSTS)
+for ((i=0; i<$${#HOSTS[@]}; i+=2)) do
+    echo "$${HOSTS[$$i]}" slots="$${HOSTS[$$i+1]}" >> hostfile
+done
+
+# export MPI_ROOT=/opt/ibm/spectrum_mpi
+mpiexec --display-allocation --hostfile hostfile -np ${num_cores} \
     $${FLUX_CMD} start \
     -o,-Spersist-filesystem=$${PERSIST_DIR},-Slog-forward-level=$${LOG_LEVEL},-Slog-stderr-level=$${LOG_LEVEL} \
     flux tree \
