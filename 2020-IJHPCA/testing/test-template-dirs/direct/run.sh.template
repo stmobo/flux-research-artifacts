@@ -60,7 +60,7 @@ if [[ -n $$LOG_DIR ]]; then
 fi
 
 TIME_OUTFILE=$${RESULTS_DIR}/time.output
-export FLUX_CONF_DIR=${test_dir}/conf.d
+#export FLUX_CONF_DIR=${test_dir}/conf.d
 
 ulimit -c unlimited # core dumps (debuggin)
 ulimit -f unlimited # file size (content store db)
