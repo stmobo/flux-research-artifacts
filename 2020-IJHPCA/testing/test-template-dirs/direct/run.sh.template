@@ -83,17 +83,7 @@ ulimit -u 7168 # processes (large workloads)
     echo EXTRA FLAGS  = "$${EXTRA_FLAGS}"
 #fi
 
-if [[ -a hostfile ]]; then
-    rm hostfile
-fi
-
-HOSTS=($$LSB_MCPU_HOSTS)
-for ((i=0; i<$${#HOSTS[@]}; i+=2)) do
-    echo "$${HOSTS[$$i]}" slots="$${HOSTS[$$i+1]}" >> hostfile
-done
-
-# export MPI_ROOT=/opt/ibm/spectrum_mpi
-mpiexec --display-allocation --hostfile hostfile -np ${num_cores} \
+mpiexec -bind-to core -np ${num_cores} \
     $${FLUX_CMD} start \
     -o,-Spersist-filesystem=$${PERSIST_DIR},-Slog-forward-level=$${LOG_LEVEL},-Slog-stderr-level=$${LOG_LEVEL} \
     flux tree \
@@ -108,7 +98,7 @@ mpiexec --display-allocation --hostfile hostfile -np ${num_cores} \
 touch $${TIME_OUTFILE}
 
 #if [[ $${SLURM_PROCID} -eq 0 ]]; then
-echo "Completed: $${FLUX_CM}"
+echo "Completed: $${FLUX_CMD}"
 #fi
 
 pkill -u $$USER flux-broker
