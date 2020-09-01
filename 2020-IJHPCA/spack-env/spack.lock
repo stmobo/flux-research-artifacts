@@ -37,12 +37,16 @@
    "spec": "stream"
   },
   {
-   "hash": "e54lc6bnwqvglb6ucs3tkiat6dx7p7qo",
+   "hash": "ro6syyewkej2vjvydcizppenvabls2bd",
    "spec": "hpl"
   },
   {
    "hash": "pc4yrw34indfp4leez4r4ofvwmiz55ff",
    "spec": "p7zip"
+  },
+  {
+   "hash": "otvu2nj2ungmfpp6g2kr3otn3ubvbv7m",
+   "spec": "mpich~hwloc"
   }
  ],
  "concrete_specs": {
@@ -4315,7 +4319,7 @@
     "hash": "5m2eqq6q7ajkm76jc6bugosjfkfao6zr"
    }
   },
-  "e54lc6bnwqvglb6ucs3tkiat6dx7p7qo": {
+  "ro6syyewkej2vjvydcizppenvabls2bd": {
    "hpl": {
     "version": "2.3",
     "arch": {
@@ -4346,27 +4350,27 @@
      "ldlibs": []
     },
     "dependencies": {
+     "mpich": {
+      "hash": "otvu2nj2ungmfpp6g2kr3otn3ubvbv7m",
+      "type": [
+       "build",
+       "link"
+      ]
+     },
      "openblas": {
       "hash": "7kytbkr2333mkigsf7ijz46qmlx7cblg",
       "type": [
        "build",
        "link"
       ]
-     },
-     "openmpi": {
-      "hash": "vtl22rom7lsv4oi5vj32ghlvwtzu5dtt",
-      "type": [
-       "build",
-       "link"
-      ]
      }
     },
-    "hash": "5w3hsabvbsahhxeclhwzr4ph54dpac6y"
+    "hash": "v7uocadn4le372kyp7js6fa7kldhe6yw"
    }
   },
-  "vtl22rom7lsv4oi5vj32ghlvwtzu5dtt": {
-   "openmpi": {
-    "version": "3.1.6",
+  "otvu2nj2ungmfpp6g2kr3otn3ubvbv7m": {
+   "mpich": {
+    "version": "3.3.2",
     "arch": {
      "platform": "linux",
      "platform_os": "rhel7",
@@ -4386,28 +4390,18 @@
     },
     "namespace": "builtin",
     "parameters": {
-     "atomics": false,
-     "cuda": false,
-     "cxx": false,
-     "cxx_exceptions": false,
-     "fabrics": [
-      "none"
-     ],
-     "gpfs": true,
-     "java": false,
-     "legacylaunchers": false,
-     "lustre": false,
-     "memchecker": false,
-     "pmi": false,
-     "schedulers": [
-      "none"
-     ],
-     "singularity": false,
-     "sqlite3": false,
-     "static": true,
-     "thread_multiple": false,
-     "vt": true,
-     "wrapper-rpath": true,
+     "argobots": false,
+     "device": "ch3",
+     "hwloc": false,
+     "hydra": true,
+     "libxml2": true,
+     "netmod": "tcp",
+     "pci": true,
+     "pmi": "pmi",
+     "romio": true,
+     "slurm": false,
+     "verbs": false,
+     "wrapperrpath": true,
      "cflags": [],
      "cppflags": [],
      "cxxflags": [],
@@ -4416,15 +4410,21 @@
      "ldlibs": []
     },
     "dependencies": {
-     "hwloc": {
-      "hash": "t7yha3svsowvec5yn4uugoghe5slvp47",
+     "findutils": {
+      "hash": "2xbzipdi55u4wcwgyca3trhy6igoim5y",
+      "type": [
+       "build"
+      ]
+     },
+     "libpciaccess": {
+      "hash": "nlexmmuuuqpvkhbag4jtmapm6jtnguqr",
       "type": [
        "build",
        "link"
       ]
      },
-     "numactl": {
-      "hash": "ng4xy5eq6lsmfpcrpu5yqds5s4hxk6db",
+     "libxml2": {
+      "hash": "pmcwru5id3zs3o2mk4yjwdismdihzoqe",
       "type": [
        "build",
        "link"
@@ -4435,16 +4435,130 @@
       "type": [
        "build"
       ]
+     }
+    },
+    "hash": "rgocdtdjr7hagztjvjxoj34hsgn7jfep"
+   }
+  },
+  "2xbzipdi55u4wcwgyca3trhy6igoim5y": {
+   "findutils": {
+    "version": "4.6.0",
+    "arch": {
+     "platform": "linux",
+     "platform_os": "rhel7",
+     "target": {
+      "name": "power9le",
+      "vendor": "IBM",
+      "features": [],
+      "generation": 9,
+      "parents": [
+       "power8le"
+      ]
+     }
+    },
+    "compiler": {
+     "name": "gcc",
+     "version": "8.4.0"
+    },
+    "namespace": "builtin",
+    "parameters": {
+     "patches": [
+      "84b916c0bf8c51b7e7b28417692f0ad3e7030d1f3c248ba77c42ede5c1c5d11e",
+      "bd9e4e5cc280f9753ae14956c4e4aa17fe7a210f55dd6c84aa60b12d106d47a2"
+     ],
+     "cflags": [],
+     "cppflags": [],
+     "cxxflags": [],
+     "fflags": [],
+     "ldflags": [],
+     "ldlibs": []
+    },
+    "patches": [
+     "84b916c0bf8c51b7e7b28417692f0ad3e7030d1f3c248ba77c42ede5c1c5d11e",
+     "bd9e4e5cc280f9753ae14956c4e4aa17fe7a210f55dd6c84aa60b12d106d47a2"
+    ],
+    "dependencies": {
+     "autoconf": {
+      "hash": "vgo6grezxqzjgscperewalouocqeezab",
+      "type": [
+       "build"
+      ]
      },
-     "zlib": {
-      "hash": "yfebba2xiuakqa3inpkwxrto6gjgwmxm",
+     "automake": {
+      "hash": "vuhufhcqo6cpjnce234xlnirxq3of74b",
+      "type": [
+       "build"
+      ]
+     },
+     "libtool": {
+      "hash": "mkqajgi2vsuqbdttrfhgtvstmkmm3l2b",
+      "type": [
+       "build"
+      ]
+     },
+     "m4": {
+      "hash": "uy6xcly2jqc6qfnddhpggrq4iogejjcz",
+      "type": [
+       "build"
+      ]
+     },
+     "texinfo": {
+      "hash": "53aobz6btjc35lnrgpksft65frizcfie",
+      "type": [
+       "build"
+      ]
+     }
+    },
+    "hash": "zsiof6jjagpdbjvatys6tulkvuu4yjyd"
+   }
+  },
+  "53aobz6btjc35lnrgpksft65frizcfie": {
+   "texinfo": {
+    "version": "6.5",
+    "arch": {
+     "platform": "linux",
+     "platform_os": "rhel7",
+     "target": {
+      "name": "power9le",
+      "vendor": "IBM",
+      "features": [],
+      "generation": 9,
+      "parents": [
+       "power8le"
+      ]
+     }
+    },
+    "compiler": {
+     "name": "gcc",
+     "version": "8.4.0"
+    },
+    "namespace": "builtin",
+    "parameters": {
+     "patches": [
+      "12f6edb0c6b270b8c8dba2ce17998c580db01182d871ee32b7b6e4129bd1d23a",
+      "1732115f651cff98989cb0215d8f64da5e0f7911ebf0c13b064920f088f2ffe1"
+     ],
+     "cflags": [],
+     "cppflags": [],
+     "cxxflags": [],
+     "fflags": [],
+     "ldflags": [],
+     "ldlibs": []
+    },
+    "patches": [
+     "1732115f651cff98989cb0215d8f64da5e0f7911ebf0c13b064920f088f2ffe1",
+     "12f6edb0c6b270b8c8dba2ce17998c580db01182d871ee32b7b6e4129bd1d23a"
+    ],
+    "dependencies": {
+     "perl": {
+      "hash": "afall45lu2lvd7tbgiachmsgnuwb6hjx",
       "type": [
        "build",
        "link"
       ]
      }
     },
-    "hash": "auf6bg6whxwgfmb5sm55epwyufccmz6p"
+    "hash": "haytm4wwmw44mxu2ruejmmjtambbpq3r"
    }
   },
   "pc4yrw34indfp4leez4r4ofvwmiz55ff": {
