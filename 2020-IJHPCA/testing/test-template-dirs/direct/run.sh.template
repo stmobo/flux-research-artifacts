@@ -83,7 +83,11 @@ ulimit -u 7168 # processes (large workloads)
     echo EXTRA FLAGS  = "$${EXTRA_FLAGS}"
 #fi
 
-mpiexec -bind-to core -np ${num_cores} \
+# Run one flux instance per node
+#
+# Each broker will think it has the entire node and we can't configure it
+# any other way, but for the purposes of these tests that will always be true.
+mpiexec -ppn 1 -np ${num_nodes} \
     $${FLUX_CMD} start \
     -o,-Spersist-filesystem=$${PERSIST_DIR},-Slog-forward-level=$${LOG_LEVEL},-Slog-stderr-level=$${LOG_LEVEL} \
     flux tree \
