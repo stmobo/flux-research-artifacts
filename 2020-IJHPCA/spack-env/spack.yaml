@@ -11,7 +11,4 @@ spack:
   - hpl
   - p7zip
   - mpich~hwloc
-  #- openmpi+cuda schedulers=lsf
-  #- pmix@master
   concretization: together
-  view: /home/smobo/spack-views/hierarchical-scheduling
