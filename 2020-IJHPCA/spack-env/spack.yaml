@@ -9,5 +9,6 @@ spack:
   - flux-sched@master
   - stream
   - hpl
+  - laghos@develop ^mpich
+  - p7zip
   concretization: together
-  view: /home/herbein1/spack-views/hierarchical-sched
