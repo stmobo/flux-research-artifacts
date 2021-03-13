@@ -21,13 +21,17 @@ def trim_max_jobs_per_leaf(df, max_jobs_per_leaf):
     return df
 
 
-def _get_avg_runtime(unique_id, num_jobs=None, total_cores=None, system="opal"):
-    if system == "opal":
+def _get_avg_runtime(unique_id, num_jobs=None, resource_cap=None, system="opal"):
+    if system == "opal" or system == "quartz":
         runtime_bounds = {
             "sleep0": (0, 1),
             "sleep5": (5, 5.23),
             "firestarter": (5, 5.69),
             "stream": (5.2, 22.15),
+            "laghos6-5sec": (4.95, 5.40),
+            "laghos8-5sec": (4.93, 4.99),
+            "laghos6-10sec": (9.91, 10.719),
+            "laghos8-10sec": (9.94, 10.028),
         }
     elif system == "lassen":
         runtime_bounds = {
@@ -37,27 +41,27 @@ def _get_avg_runtime(unique_id, num_jobs=None, total_cores=None, system="opal"):
             "stream": (5, 20.01),
         }
     fastest, slowest = runtime_bounds[unique_id]
-    if num_jobs is None or total_cores is None:
+    if num_jobs is None or resource_cap is None:
         return fastest
-    elif num_jobs >= total_cores:
+    elif num_jobs >= resource_cap:
         return slowest
     else:
-        percentage_used = num_jobs / total_cores
+        percentage_used = num_jobs / resource_cap
         return ((slowest - fastest) * (percentage_used)) + fastest
 
 
-def get_avg_runtime(unique_id, num_jobs=None, total_cores=None, system="opal"):
+def get_avg_runtime(unique_id, num_jobs=None, resource_cap=None, system="opal"):
     if isinstance(num_jobs, np.ndarray):
-        return np.array([_get_avg_runtime(unique_id, x, total_cores, system) for x in num_jobs])
+        return np.array([_get_avg_runtime(unique_id, x, resource_cap, system) for x in num_jobs])
     else:
-        return _get_avg_runtime(unique_id, num_jobs, total_cores, system)
+        return _get_avg_runtime(unique_id, num_jobs, resource_cap, system)
 
 
-def calc_upperbound(unique_id, num_jobs, total_cores):
-    total_core_seconds = num_jobs * get_avg_runtime(unique_id)
-    if total_core_seconds == 0:
+def calc_upperbound(unique_id, num_jobs, resource_cap):
+    total_runtime = num_jobs * get_avg_runtime(unique_id)
+    if total_runtime == 0:
         return float("inf")
-    return num_jobs / (total_core_seconds / min(num_jobs, total_cores))
+    return num_jobs / (total_runtime / min(num_jobs, resource_cap))
 
 
 def calc_cost_to_generate_dfs(dfs, df_labels, logger=None):
@@ -303,7 +307,7 @@ class AnalyticalModelContentedRuntime(AnalyticalModel):
         sched_create_cost: SupportsFloat,
         resource_cap: SupportsFloat,
         avg_runtime_func,
-        cores_per_node,
+        jobs_per_node,
         max_jobs_per_leaf=1024,
         logger=None,
     ):
@@ -317,7 +321,7 @@ class AnalyticalModelContentedRuntime(AnalyticalModel):
         super().__init__(sched_rate, sched_create_cost, resource_cap, max_jobs_per_leaf, logger=logger)
 
         self.get_avg_runtime = avg_runtime_func
-        self.cores_per_node = cores_per_node
+        self.jobs_per_node = jobs_per_node
 
     def get_single_level_predictions(self, num_jobs: np.ndarray, resource_cap=None, runtime=None):
         if resource_cap is None:
@@ -337,7 +341,7 @@ class AnalyticalModelContentedRuntime(AnalyticalModel):
     def calc_model_cost(self):
         num_waves = 3
         contention_test = (
-            self.get_avg_runtime(self.cores_per_node * num_waves, self.cores_per_node)
+            self.get_avg_runtime(self.jobs_per_node * num_waves, self.jobs_per_node)
             * num_waves
         )
         return (contention_test, contention_test)

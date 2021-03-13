@@ -82,7 +82,7 @@ def main():
         sched_create_cost=sched_create_cost,
         resource_cap=total_cores,
         avg_runtime_func=functools.partial(modelling.get_avg_runtime, unique_id),
-        cores_per_node=cores_per_node,
+        jobs_per_node=cores_per_node,
         logger=logger,
     )
     analyticalWithContention_model_df = pd.concat(
