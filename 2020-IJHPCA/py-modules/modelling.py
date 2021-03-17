@@ -28,10 +28,8 @@ def _get_avg_runtime(unique_id, num_jobs=None, resource_cap=None, system="opal")
             "sleep5": (5, 5.23),
             "firestarter": (5, 5.69),
             "stream": (5.2, 22.15),
-            "laghos6-5sec": (4.95, 5.40),
-            "laghos8-5sec": (4.93, 4.99),
-            "laghos6-10sec": (9.91, 10.719),
-            "laghos8-10sec": (9.94, 10.028),
+            "laghos6-5sec": (5, 5.52),
+            "laghos6-10sec": (10, 10.65),
         }
     elif system == "lassen":
         runtime_bounds = {

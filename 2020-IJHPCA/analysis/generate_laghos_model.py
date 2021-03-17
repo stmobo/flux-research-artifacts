@@ -84,9 +84,9 @@ def generate_model(tasks_per_job: int, job_type: str, topologies):
 def main():
     out_df = pd.concat([
         generate_model(6, "5sec", [(1,), (1, 32), (1, 32, 6)]),
-        generate_model(8, "5sec", [(1,), (1, 32), (1, 32, 4)]),
+        # generate_model(8, "5sec", [(1,), (1, 32), (1, 32, 4)]),
         generate_model(6, "10sec", [(1,), (1, 32), (1, 32, 6)]),
-        generate_model(8, "10sec", [(1,), (1, 32), (1, 32, 4)]),
+        # generate_model(8, "10sec", [(1,), (1, 32), (1, 32, 4)]),
     ], sort=True)
     util.pretty_log_df(out_df, "Final DataFrame", logger)
 
