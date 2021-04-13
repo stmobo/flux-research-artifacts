@@ -17,11 +17,13 @@ from modules.modelling import agg_by, trim_max_jobs_per_leaf
 from modules.modelling import PurelyAnalyticalModel, AnalyticalModelContentedRuntime
 
 
-def generate_model(tasks_per_job: int, job_type: str, topologies):
+def main():
     num_nodes = 32
     cores_per_node = 36
     sched_rate = 4.5
     sched_create_cost = 4.3
+    tasks_per_job = 6
+    topologies = [(1,), (1, 32), (1, 32, 6)]
 
     # Maximum number of simultaneous jobs that can fit onto a node
     # (assuming each task uses 1 core)
@@ -30,13 +32,10 @@ def generate_model(tasks_per_job: int, job_type: str, topologies):
     # Maximum number of simultaneous jobs total
     total_slots = num_nodes * slots_per_node
 
-    # "laghos6-5sec" or "laghos8-5sec"
-    unique_id = "laghos" + str(tasks_per_job) + "-" + job_type
-
     analytical_model = PurelyAnalyticalModel(
         sched_rate=sched_rate,
         sched_create_cost=sched_create_cost,
-        job_runtime=modelling.get_avg_runtime(unique_id),
+        job_runtime=modelling.get_avg_runtime("laghos"),
         resource_cap=total_slots,
         logger=logger
     )
@@ -45,7 +44,7 @@ def generate_model(tasks_per_job: int, job_type: str, topologies):
         sched_rate=sched_rate,
         sched_create_cost=sched_create_cost,
         resource_cap=total_slots,
-        avg_runtime_func=functools.partial(modelling.get_avg_runtime, unique_id),
+        avg_runtime_func=functools.partial(modelling.get_avg_runtime, "laghos"),
         jobs_per_node=slots_per_node,
         logger=logger,
     )
@@ -73,25 +72,15 @@ def generate_model(tasks_per_job: int, job_type: str, topologies):
         ],
         sort=True,
     )
-    new_model_df["unique_id"] = unique_id
+    new_model_df["unique_id"] = "laghos"
     new_model_df["throughput_upperbound"] = new_model_df["num_jobs"].apply(
-        lambda x: modelling.calc_upperbound(unique_id, x, total_slots)
+        lambda x: modelling.calc_upperbound("laghos", x, total_slots)
     )
 
-    return new_model_df
-
-
-def main():
-    out_df = pd.concat([
-        generate_model(6, "5sec", [(1,), (1, 32), (1, 32, 6)]),
-        # generate_model(8, "5sec", [(1,), (1, 32), (1, 32, 4)]),
-        generate_model(6, "10sec", [(1,), (1, 32), (1, 32, 6)]),
-        # generate_model(8, "10sec", [(1,), (1, 32), (1, 32, 4)]),
-    ], sort=True)
-    util.pretty_log_df(out_df, "Final DataFrame", logger)
+    util.pretty_log_df(new_model_df, "Final DataFrame", logger)
 
     logger.info("Saving data to {}".format(args.output_pkl))
-    out_df.to_pickle(args.output_pkl)
+    new_model_df.to_pickle(args.output_pkl)
 
 
 if __name__ == "__main__":
