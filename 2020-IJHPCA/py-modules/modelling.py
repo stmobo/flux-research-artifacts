@@ -28,8 +28,7 @@ def _get_avg_runtime(unique_id, num_jobs=None, resource_cap=None, system="opal")
             "sleep5": (5, 5.23),
             "firestarter": (5, 5.69),
             "stream": (5.2, 22.15),
-            "laghos6-5sec": (5, 5.52),
-            "laghos6-10sec": (10, 10.65),
+            "laghos": (5, 5.52),
         }
     elif system == "lassen":
         runtime_bounds = {
@@ -129,9 +128,9 @@ class Model(ABC):
         self.logger.debug(
             "Num-Levels: %d, Prediction DF:\n%s", num_levels, prediction_df
         )
-        out_df = self.interpolate(
-            prediction_df.num_jobs.to_numpy(), prediction_df.makespan.to_numpy()
-        )
+        out_df = self.interpolate(prediction_df)
+        out_df["makespan"] = out_df.job_cost + out_df.init_cost
+        out_df["throughput"] = out_df.num_jobs / out_df.makespan
         out_df["num_levels"] = len(topology)
         if num_levels == 1:
             self.level_one_interp = out_df
@@ -147,9 +146,9 @@ class Model(ABC):
 
         if num_levels == 1:
             num_jobs = jobs_per_leaf
-            makespans = self.get_single_level_predictions(jobs_per_leaf)
+            job_cost, init_cost = self.get_single_level_predictions(jobs_per_leaf)
             self.logger.debug(
-                "Num leaves: %d, Num_jobs: %s, Makespans: %s", 1, num_jobs, makespans
+                "Num leaves: %d, Num_jobs: %s, Makespans: %s", 1, num_jobs, (job_cost + init_cost)
             )
         else:
             num_leaves = get_num_leaves(topology)
@@ -160,8 +159,8 @@ class Model(ABC):
                 num_jobs,
                 jobs_per_leaf,
             )
-            makespans = self.get_multilevel_predictions(topology, jobs_per_leaf)
-        out_df = pd.DataFrame(data={"num_jobs": num_jobs, "makespan": makespans})
+            job_cost, init_cost = self.get_multilevel_predictions(topology, jobs_per_leaf)
+        out_df = pd.DataFrame(data={"num_jobs": num_jobs, "job_cost": job_cost, "init_cost": init_cost})
         out_df["num_levels"] = len(topology)
         out_df.sort_values(by="num_jobs")
         return out_df
@@ -169,18 +168,35 @@ class Model(ABC):
     def get_multilevel_predictions(self, topology, jobs_per_leaf: np.ndarray):
         if len(topology) < 2:
             raise ValueError("Must be passed a multi-level topology")
-        return [self.calc_cost(topology, jpl) for jpl in jobs_per_leaf]
+        job_costs = np.zeros(len(jobs_per_leaf))
+        init_costs = np.zeros(len(jobs_per_leaf))
+
+        for i, jpl in enumerate(jobs_per_leaf):
+            job_cost, init_cost = self.calc_cost(topology, jpl)
+            job_costs[i] = job_cost
+            init_costs[i] = init_cost
+
+        return job_costs, init_costs
 
     @staticmethod
-    def interpolate(num_jobs, makespans):
-        interp_num_jobs, interp_makespans = interpolate_real_data(
-            num_jobs, makespans, degree=2
+    def interpolate(prediction_df):
+        num_jobs = prediction_df.num_jobs.to_numpy()
+        job_cost = prediction_df.job_cost.to_numpy()
+        init_cost = prediction_df.init_cost.to_numpy()
+
+        interp_num_jobs, interp_job_cost = interpolate_real_data(
+            num_jobs, job_cost, degree=2
         )
+
+        _, interp_init_cost = interpolate_real_data(
+            num_jobs, init_cost, degree=2
+        )
+
         return pd.DataFrame(
             data={
                 "num_jobs": interp_num_jobs,
-                "makespan": interp_makespans,
-                "throughput": interp_num_jobs / interp_makespans,
+                "job_cost": interp_job_cost,
+                "init_cost": interp_init_cost,
             }
         )
 
@@ -199,7 +215,7 @@ class Model(ABC):
                 total_cost,
             ),
         )
-        return total_cost
+        return cost_to_launch_jobs, cost_to_launch_hierarchy
 
     @abstractmethod
     def calc_model_cost(self):
@@ -242,21 +258,23 @@ class AnalyticalModel(Model):
     def get_interpolated_predictions(self, topology):
         # No need for interpolation with this inexpensive analytical model
         pred_df = self.get_predictions(topology)
+        pred_df["makespan"] = pred_df.job_cost + pred_df.init_cost
         pred_df["throughput"] = pred_df.num_jobs / pred_df.makespan
         return pred_df
 
     def get_job_launch_cost(self, topology, jobs_per_leaf: pd.Series):
         num_leaves = get_num_leaves(topology)
-        return self.get_single_level_predictions(
+        job_cost, init_cost = self.get_single_level_predictions(
             np.array([jobs_per_leaf]), resource_cap=self.resource_cap / num_leaves
-        )[0]
+        )
+
+        return job_cost[0] + init_cost
 
     def get_empty_hierarchy_init_cost(self, topology):
         if len(topology) == 0:
             return 0
-        return self.get_single_level_predictions(np.array([topology[-1]]), runtime=0)[
-            0
-        ] + self.get_empty_hierarchy_init_cost(topology[:-1])
+        job_cost, init_cost = self.get_single_level_predictions(np.array([topology[-1]]), runtime=0)
+        return job_cost[0] + init_cost + self.get_empty_hierarchy_init_cost(topology[:-1])
 
 
 class PurelyAnalyticalModel(AnalyticalModel):
@@ -292,7 +310,7 @@ class PurelyAnalyticalModel(AnalyticalModel):
         )  # clip(max=X) sets all values greater than X to X.  equivalent to .apply(lambda x: min(x, X))
         true_bottleneck = np.maximum(sched_bottleneck, resource_bottleneck)
         init_cost = self.sched_create_cost
-        return true_bottleneck + init_cost
+        return true_bottleneck, init_cost
 
     def calc_model_cost(self):
         return (0, 0)
@@ -334,7 +352,7 @@ class AnalyticalModelContentedRuntime(AnalyticalModel):
         )  # clip(max=X) sets all values greater than X to X.  equivalent to .apply(lambda x: min(x, X))
         true_bottleneck = np.maximum(sched_bottleneck, resource_bottleneck)
         init_cost = self.sched_create_cost
-        return true_bottleneck + init_cost
+        return true_bottleneck, init_cost
 
     def calc_model_cost(self):
         num_waves = 3
